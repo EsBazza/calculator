@@ -24,6 +24,7 @@ export default function App() {
   const [operator, setOperator] = useState("");
   const [firstOperand, setFirstOperand] = useState("");
   const [surnameDisplayed, setSurnameDisplayed] = useState(false);
+  const [justEvaluated, setJustEvaluated] = useState(false); // NEW: tracks if last action was "=" producing a result
 
   const fullname = "Amaro Juno Alonzo";
   const surname = "Alonzo";
@@ -35,36 +36,60 @@ export default function App() {
     setFirstOperand("");
     setDisplay("0");
     setSurnameDisplayed(false);
+    setJustEvaluated(false);
+  };
+
+  const startFreshWithDigit = (digit) => {
+    // Helper to begin a new entry after result or surname
+    setOperand(digit);
+    setDisplay(digit);
+    setOperator("");
+    setFirstOperand("");
+    setSurnameDisplayed(false);
+    setJustEvaluated(false);
   };
 
   const handleNumberClick = (digit) => {
+    // If surname is on display OR we just showed a result from "=" -> start a new calculation
+    if (surnameDisplayed || justEvaluated) {
+      startFreshWithDigit(digit);
+      return;
+    }
+
     setOperand((prev) => {
       let next;
-
-      if (surnameDisplayed) {
-        // Replace surname with the new digit
-        next = digit;
-        setSurnameDisplayed(false);
-      } else if (prev === "" && digit === "0") {
+      if (prev === "" && digit === "0") {
         next = "0";
       } else if (prev === "0") {
         next = digit;
       } else {
         next = prev + digit;
       }
-
       setDisplay(next);
       return next;
     });
   };
 
   const handleOperatorClick = (op) => {
-    // Ignore if surname currently displayed
     if (surnameDisplayed) return;
+
+    // If we just evaluated and user presses an operator, allow chaining:
+    if (justEvaluated) {
+      setFirstOperand(operand || display);
+      setOperator(op);
+      setOperand("");
+      setDisplay(op);
+      setJustEvaluated(false);
+      return;
+    }
 
     if (operand !== "") {
       if (firstOperand !== "" && operator && operand) {
-        computeResult(op);
+        // Chain compute then set new operator
+        const computed = computeResult(op);
+        if (computed) {
+          setJustEvaluated(false); // we want to continue entering next operand
+        }
         return;
       }
       setFirstOperand(operand);
@@ -78,7 +103,7 @@ export default function App() {
   };
 
   const computeResult = (nextOp = "") => {
-    if (surnameDisplayed) return;
+    if (surnameDisplayed) return false;
 
     if (firstOperand !== "" && operator !== "" && operand !== "") {
       const a = parseFloat(firstOperand);
@@ -93,7 +118,7 @@ export default function App() {
           if (b === 0) {
             setDisplay("Error");
             resetAll();
-            return;
+            return false;
           }
           result = a / b;
           break;
@@ -103,13 +128,21 @@ export default function App() {
 
       const str = result.toString();
       setDisplay(str);
+      // If nextOp provided (user pressed another operator), keep result as firstOperand for chaining
       setOperand(nextOp ? "" : str);
       setFirstOperand(nextOp ? str : "");
       setOperator(nextOp);
+      return true;
     }
+    return false;
   };
 
-  const handleEqualsClick = () => computeResult("");
+  const handleEqualsClick = () => {
+    const didCompute = computeResult("");
+    if (didCompute) {
+      setJustEvaluated(true); // Now pressing a number will reset instead of appending
+    }
+  };
 
   const handleClearClick = () => resetAll();
 
@@ -119,6 +152,7 @@ export default function App() {
     setOperator("");
     setFirstOperand("");
     setSurnameDisplayed(true);
+    setJustEvaluated(false);
   };
 
   return (
@@ -139,15 +173,15 @@ export default function App() {
           <Button label="6" className="num" onClick={() => handleNumberClick("6")} />
           <Button label="*" className="op" onClick={() => handleOperatorClick("*")} />
 
-            <Button label="1" className="num" onClick={() => handleNumberClick("1")} />
-            <Button label="2" className="num" onClick={() => handleNumberClick("2")} />
-            <Button label="3" className="num" onClick={() => handleNumberClick("3")} />
-            <Button label="-" className="op" onClick={() => handleOperatorClick("-")} />
+          <Button label="1" className="num" onClick={() => handleNumberClick("1")} />
+          <Button label="2" className="num" onClick={() => handleNumberClick("2")} />
+          <Button label="3" className="num" onClick={() => handleNumberClick("3")} />
+          <Button label="-" className="op" onClick={() => handleOperatorClick("-")} />
 
-            <Button label="C" className="clear" onClick={handleClearClick} />
-            <Button label="0" className="num" onClick={() => handleNumberClick("0")} />
-            <Button label="=" className="equal" onClick={handleEqualsClick} />
-            <Button label="+" className="op" onClick={() => handleOperatorClick("+")} />
+          <Button label="C" className="clear" onClick={handleClearClick} />
+          <Button label="0" className="num" onClick={() => handleNumberClick("0")} />
+          <Button label="=" className="equal" onClick={handleEqualsClick} />
+          <Button label="+" className="op" onClick={() => handleOperatorClick("+")} />
         </div>
         <button
           type="button"
