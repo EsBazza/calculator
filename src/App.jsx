@@ -2,11 +2,7 @@ import React, { useState } from "react";
 import "./App.css";
 
 function Display({ value }) {
-  return (
-    <div className="display">
-      {value}
-    </div>
-  );
+  return <div className="display">{value}</div>;
 }
 
 function Button({ label, className = "", onClick }) {
@@ -27,6 +23,7 @@ export default function App() {
   const [operand, setOperand] = useState("");
   const [operator, setOperator] = useState("");
   const [firstOperand, setFirstOperand] = useState("");
+  const [surnameDisplayed, setSurnameDisplayed] = useState(false);
 
   const fullname = "Amaro Juno Alonzo";
   const surname = "Alonzo";
@@ -37,24 +34,34 @@ export default function App() {
     setOperator("");
     setFirstOperand("");
     setDisplay("0");
+    setSurnameDisplayed(false);
   };
 
   const handleNumberClick = (digit) => {
-    setOperand(prev => {
+    setOperand((prev) => {
       let next;
-      if (prev === "" && digit === "0") {
+
+      if (surnameDisplayed) {
+        // Replace surname with the new digit
+        next = digit;
+        setSurnameDisplayed(false);
+      } else if (prev === "" && digit === "0") {
         next = "0";
       } else if (prev === "0") {
         next = digit;
       } else {
         next = prev + digit;
       }
+
       setDisplay(next);
       return next;
     });
   };
 
   const handleOperatorClick = (op) => {
+    // Ignore if surname currently displayed
+    if (surnameDisplayed) return;
+
     if (operand !== "") {
       if (firstOperand !== "" && operator && operand) {
         computeResult(op);
@@ -71,6 +78,8 @@ export default function App() {
   };
 
   const computeResult = (nextOp = "") => {
+    if (surnameDisplayed) return;
+
     if (firstOperand !== "" && operator !== "" && operand !== "") {
       const a = parseFloat(firstOperand);
       const b = parseFloat(operand);
@@ -109,6 +118,7 @@ export default function App() {
     setDisplay(fullname);
     setOperator("");
     setFirstOperand("");
+    setSurnameDisplayed(true);
   };
 
   return (
@@ -129,15 +139,15 @@ export default function App() {
           <Button label="6" className="num" onClick={() => handleNumberClick("6")} />
           <Button label="*" className="op" onClick={() => handleOperatorClick("*")} />
 
-          <Button label="1" className="num" onClick={() => handleNumberClick("1")} />
-          <Button label="2" className="num" onClick={() => handleNumberClick("2")} />
-          <Button label="3" className="num" onClick={() => handleNumberClick("3")} />
-          <Button label="-" className="op" onClick={() => handleOperatorClick("-")} />
+            <Button label="1" className="num" onClick={() => handleNumberClick("1")} />
+            <Button label="2" className="num" onClick={() => handleNumberClick("2")} />
+            <Button label="3" className="num" onClick={() => handleNumberClick("3")} />
+            <Button label="-" className="op" onClick={() => handleOperatorClick("-")} />
 
-          <Button label="C" className="clear" onClick={handleClearClick} />
-          <Button label="0" className="num" onClick={() => handleNumberClick("0")} />
-          <Button label="=" className="equal" onClick={handleEqualsClick} />
-          <Button label="+" className="op" onClick={() => handleOperatorClick("+")} />
+            <Button label="C" className="clear" onClick={handleClearClick} />
+            <Button label="0" className="num" onClick={() => handleNumberClick("0")} />
+            <Button label="=" className="equal" onClick={handleEqualsClick} />
+            <Button label="+" className="op" onClick={() => handleOperatorClick("+")} />
         </div>
         <button
           type="button"
