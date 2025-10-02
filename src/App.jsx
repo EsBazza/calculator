@@ -24,7 +24,7 @@ export default function App() {
   const [operator, setOperator] = useState("");
   const [firstOperand, setFirstOperand] = useState("");
   const [surnameDisplayed, setSurnameDisplayed] = useState(false);
-  const [justEvaluated, setJustEvaluated] = useState(false); // NEW: tracks if last action was "=" producing a result
+  const [justEvaluated, setJustEvaluated] = useState(false);
 
   const fullname = "Amaro Juno Alonzo";
   const surname = "Alonzo";
@@ -40,7 +40,6 @@ export default function App() {
   };
 
   const startFreshWithDigit = (digit) => {
-    // Helper to begin a new entry after result or surname
     setOperand(digit);
     setDisplay(digit);
     setOperator("");
@@ -50,7 +49,6 @@ export default function App() {
   };
 
   const handleNumberClick = (digit) => {
-    // If surname is on display OR we just showed a result from "=" -> start a new calculation
     if (surnameDisplayed || justEvaluated) {
       startFreshWithDigit(digit);
       return;
@@ -73,7 +71,6 @@ export default function App() {
   const handleOperatorClick = (op) => {
     if (surnameDisplayed) return;
 
-    // If we just evaluated and user presses an operator, allow chaining:
     if (justEvaluated) {
       setFirstOperand(operand || display);
       setOperator(op);
@@ -85,10 +82,9 @@ export default function App() {
 
     if (operand !== "") {
       if (firstOperand !== "" && operator && operand) {
-        // Chain compute then set new operator
         const computed = computeResult(op);
         if (computed) {
-          setJustEvaluated(false); // we want to continue entering next operand
+          setJustEvaluated(false);
         }
         return;
       }
@@ -128,7 +124,6 @@ export default function App() {
 
       const str = result.toString();
       setDisplay(str);
-      // If nextOp provided (user pressed another operator), keep result as firstOperand for chaining
       setOperand(nextOp ? "" : str);
       setFirstOperand(nextOp ? str : "");
       setOperator(nextOp);
@@ -140,7 +135,7 @@ export default function App() {
   const handleEqualsClick = () => {
     const didCompute = computeResult("");
     if (didCompute) {
-      setJustEvaluated(true); // Now pressing a number will reset instead of appending
+      setJustEvaluated(true);
     }
   };
 
